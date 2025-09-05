@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Diamond Calculator</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+  body {
+    font-family: 'Poppins', sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    background: linear-gradient(135deg, #ff6a00, #ee0979, #ff6fd8, #42e695, #3bb2b8);
+    background-size: 500% 500%;
+    animation: gradientBG 10s ease infinite;
+  }
+  @keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+  .top-label {
+    width: 100%;
+    text-align: center;
+    padding: 15px 0;
+    background: rgba(0,0,0,0.3);
+    font-size: 20px;
+    font-weight: bold;
+    color: #fff;
+  }
+  .box {
+    width: 720px;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 40px 30px;
+    border-radius: 20px;
+    backdrop-filter: blur(14px);
+    box-shadow: 0 6px 25px rgba(0,0,0,0.25);
+    color: #fff;
+    text-align: center;
+    margin-top: 20px;
+  }
+  h2 { margin-bottom: 25px; font-weight: 600; }
+  .input-group {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+  }
+  .input-group label {
+    flex: 1;
+    text-align: left;
+    font-weight: 600;
+  }
+  .input-group input {
+    flex: 1;
+    padding: 12px;
+    border-radius: 12px;
+    border: none;
+    text-align: center;
+    font-size: 15px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    background: #fff;
+    color: #000;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  th, td {
+    border: 1px solid #000;
+    padding: 10px;
+    text-align: center;
+  }
+  th {
+    font-weight: bold;
+    background: #000;
+    color: #fff;
+  }
+  .section-header {
+    font-weight: bold;
+    text-align: center;
+    color: #fff;
+    animation: glow 2s ease-in-out infinite alternate;
+  }
+  .double { 
+    background: linear-gradient(90deg, #ffd700, #ff8c00);
+    animation: rowGlow 3s ease-in-out infinite alternate;
+    color: #000;
+    font-weight: bold;
+  }
+  .normal { background: #dfe6e9; }
+  
+  @keyframes glow {
+    0% { background: #fd79a8; color: #fff; text-shadow: 0 0 5px #fd79a8; }
+    50% { background: #ff6fd8; color: #fff; text-shadow: 0 0 15px #ff6fd8; }
+    100% { background: #fd79a8; color: #fff; text-shadow: 0 0 5px #fd79a8; }
+  }
+  @keyframes rowGlow {
+    0% { background: linear-gradient(90deg, #ffd700, #ff8c00); }
+    50% { background: linear-gradient(90deg, #ffec00, #ff6a00); }
+    100% { background: linear-gradient(90deg, #ffd700, #ff8c00); }
+  }
+  .back-home {
+    margin: 20px 0;
+    padding: 12px 25px;
+    background: rgba(0,0,0,0.3);
+    color: #fff;
+    text-decoration: none;
+    font-weight: bold;
+    border-radius: 12px;
+    transition: 0.3s;
+  }
+  .back-home:hover {
+    background: rgba(255,255,255,0.3);
+    color: #000;
+  }
+</style>
+</head>
+<body>
+
+<div class="top-label">💎 Diamond Calculator</div>
+
+<div class="box">
+  <div class="input-group">
+    <label>1k Price in MMK:</label>
+    <input type="number" id="oneKRate" value="75000" oninput="calculate()">
+  </div>
+  <div class="input-group">
+    <label>Profit %:</label>
+    <input type="number" id="profitPercent" value="0" oninput="calculate()">
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Package (SC)</th>
+        <th>Diamond + Bonus / Name</th>
+        <th>Total Diamonds</th>
+        <th>Cost (MMK)</th>
+        <th>Selling Price (MMK)</th>
+      </tr>
+    </thead>
+    <tbody id="output"></tbody>
+  </table>
+</div>
+
+<a href="index.html" class="back-home">⬅ Back to Home</a>
+
+<script>
+const doubleDiamondPackages = [
+  {sc: 39, desc: "50 +5"},
+  {sc: 116.9, desc: "150 +15"},
+  {sc: 187.5, desc: "250 +25"},
+  {sc: 385, desc: "500 +65"},
+];
+
+const normalPackages = [
+  {sc: 61.5, desc: "78 +8"},
+  {sc: 122.0, desc: "156 +16"},
+  {sc: 176.7, desc: "234 +23"},
+  {sc: 480, desc: "625 +81"},
+  {sc: 1453, desc: "1860 +335"},
+  {sc: 2424, desc: "3099 +589"},
+  {sc: 3660, desc: "4649 +883"},
+  {sc: 6079, desc: "7740 +1548"},
+  {sc: 402.5, desc: "Twilight Passage", totalDiamond: 0},
+  {sc: 76.0, desc: "Diamond Weekly Pass", totalDiamond: 0},
+];
+
+function calculate() {
+  const oneKRate = parseFloat(document.getElementById("oneKRate").value);
+  const profitPercent = parseFloat(document.getElementById("profitPercent").value) || 0;
+  const tbody = document.getElementById("output");
+
+  if (isNaN(oneKRate) || oneKRate <= 0) {
+    tbody.innerHTML = `<tr><td colspan="6">⚠️ Enter a valid 1k MMK rate!</td></tr>`;
+    return;
+  }
+
+  let html = "";
+
+  // Double Diamond Section Header
+  html += `<tr class="section-header"><td colspan="6">Double Diamond Packages</td></tr>`;
+  doubleDiamondPackages.forEach(pkg => {
+    const cost = (pkg.sc / 1000) * oneKRate;
+    const sellingPrice = cost * (1 + profitPercent / 100);
+    const main = parseInt(pkg.desc.split(" +")[0]);
+    const bonus = parseInt(pkg.desc.split("+")[1]);
+    const totalDiamonds = main + bonus;
+
+    html += `<tr class="double">
+      <td>Double Diamond</td>
+      <td>${pkg.sc}</td>
+      <td>${pkg.desc}</td>
+      <td>${totalDiamonds}</td>
+      <td>${cost.toFixed(0)}</td>
+      <td>${sellingPrice.toFixed(0)}</td>
+    </tr>`;
+  });
+
+  // Normal Section Header
+  html += `<tr class="section-header"><td colspan="6">Normal Packages</td></tr>`;
+  normalPackages.forEach(pkg => {
+    const cost = (pkg.sc / 1000) * oneKRate;
+    const sellingPrice = cost * (1 + profitPercent / 100);
+    let totalDiamonds = pkg.totalDiamond || 0;
+    if (!totalDiamonds && pkg.desc.includes("+")) {
+      const main = parseInt(pkg.desc.split(" +")[0]);
+      const bonus = parseInt(pkg.desc.split("+")[1]);
+      totalDiamonds = main + bonus;
+    }
+
+    html += `<tr class="normal">
+      <td>Normal</td>
+      <td>${pkg.sc}</td>
+      <td>${pkg.desc}</td>
+      <td>${totalDiamonds}</td>
+      <td>${cost.toFixed(0)}</td>
+      <td>${sellingPrice.toFixed(0)}</td>
+    </tr>`;
+  });
+
+  tbody.innerHTML = html;
+}
+
+// Auto-calculate on page load
+calculate();
+</script>
+</body>
+</html>
